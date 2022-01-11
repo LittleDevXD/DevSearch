@@ -1,0 +1,44 @@
+<!-- If there is only one page, no pagination -->
+{% if queryset.has_other_pages %}
+<div class="pagination">
+    <ul class="container">
+        <li>
+            <!-- if there is no previous page, the button is disabled -->
+            <a 
+            {% if queryset.has_previous %} 
+                href="?page={{ queryset.previous_page_number }}" 
+                class="btn page-link"
+                data-page="{{ queryset.previous_page_number }}" 
+            {% endif %} 
+            class="btn page-link btn--disabled">
+            &#10094; Prev
+            </a>
+        </li>
+        
+        {% for page in custom_range %}
+            {% if page == queryset.number %}
+            <!-- data_page is a custom attr to pass page_no. to JS -->
+                <li><a href="?page={{ page }}" class="btn page-link btn--sub" data-page="{{ page }}">{{ page }}</a></li>
+            {% else %}
+                <li><a href="?page={{ page }}" class="btn page-link" data-page="{{ page }}">{{ page }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        <li>
+            <!-- if there is no next page, the button is disabled -->
+            <a 
+            {% if queryset.has_next %} 
+                href="?page={{ queryset.next_page_number }}" 
+                class="btn page-link"
+                data-page="{{ queryset.next_page_number }}"
+            {% endif %} 
+            class="btn page-link btn--disabled">
+            Next &#10095;
+            </a>
+        </li>
+    </ul>
+</div>
+{% endif %}
+<script>
+
+</script>

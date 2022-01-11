@@ -2,16 +2,23 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Q
+
+from .utils import searchProject, paginateProject
 from .models import Project, Review, Tag
-from .forms import ProjectForm
+from .forms import ProjectForm, ReviewForm
 # Create your views here.
 
 def projects(request):
     """
     Projects Page
     """
-    projectObj = Project.objects.all()
-    context = {"projects": projectObj}
+    # Search Function
+    projects, search_query = searchProject(request)
+    # Paginate Function
+    projects, custom_range = paginateProject(request, projects, 3)
+   
+    context = {"projects": projects, "search_query": search_query, "custom_range": custom_range}
     return render(request, 'projects/projects.html', context)
 
 def project(request, pk):
@@ -19,11 +26,33 @@ def project(request, pk):
     Single Project Page
     """
     project = Project.objects.get(id=pk)
-    context = {"project": project, "tags": project.tags.all()}
+
+    form = ReviewForm()
+    
+    if request.method == "POST":
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.owner = request.user.profile
+            review.project = project
+            review.save()
+
+            messages.success(request, "Your review was successfully submitted.")
+            # refresh the page
+            return redirect('project', pk=project.id)
+
+    reviewers = project.reviewers
+
+    project.get_vote_count
+
+    context = {"project": project, "tags": project.tags.all(), "form": form, "reviewers": reviewers}
     return render(request, 'projects/singleProject.html', context)
 
 @login_required(login_url="login")
 def create_project(request):
+    """
+    Create New Projects
+    """
     profile = request.user.profile
     form = ProjectForm()
     context = {"form": form}
@@ -39,6 +68,9 @@ def create_project(request):
 
 @login_required(login_url="login")
 def update_project(request, pk):
+    """
+    Edit Project
+    """
     profile = request.user.profile
     project = profile.project_set.get(id=pk)
     form = ProjectForm(instance=project)
@@ -53,6 +85,9 @@ def update_project(request, pk):
 
 @login_required(login_url="login")
 def delete_project(request, pk):
+    """
+    Delete Project
+    """
     profile = request.user.profile
     project = profile.project_set.get(id=pk)
     if request.method == "POST":
