@@ -244,6 +244,5 @@ def sendMessage(request, pk):
             messages.success(request, "Your message was sent successfully!")
             message.save()
 
-
     context = {"form": form, "recipient":recipient}
     return render(request, "users/message_form.html", context)

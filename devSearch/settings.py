@@ -30,6 +30,8 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Application definition
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -38,11 +40,28 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Our Apps
     'projects.apps.ProjectsConfig',
-    'users.apps.UsersConfig'
+    'users.apps.UsersConfig',
+
+    # API
+    'rest_framework',
+
+    # CORS
+    'corsheaders'
 ]
 
+# For Simple JWT
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
 MIDDLEWARE = [
+    # CORS
+    "corsheaders.middleware.CorsMiddleware",
+
     'django.middleware.security.SecurityMiddleware',
 
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -119,6 +138,13 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Email Credentials 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'dev.bot.from@gmail.com'
+EMAIL_HOST_PASSWORD = 'svkcgkqfmlnxanjr'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
