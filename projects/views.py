@@ -16,7 +16,7 @@ def projects(request):
     # Search Function
     projects, search_query = searchProject(request)
     # Paginate Function
-    projects, custom_range = paginateProject(request, projects, 3)
+    projects, custom_range = paginateProject(request, projects, 9)
    
     context = {"projects": projects, "search_query": search_query, "custom_range": custom_range}
     return render(request, 'projects/projects.html', context)
@@ -55,15 +55,25 @@ def create_project(request):
     """
     profile = request.user.profile
     form = ProjectForm()
-    context = {"form": form}
+    
     if request.method == "POST":
         form = ProjectForm(request.POST, request.FILES)
         if form.is_valid():
             project = form.save(commit=False)
+            # project owner
             project.owner = profile
             project.save()
+
+            # Adding tags must be done after project is saved 
+            new_tags = request.POST["new-tags"].replace(",", " ").split()
+            # Creating new tags
+            for tag in new_tags:    
+                tag, created = Tag.objects.get_or_create(name=tag)
+                project.tags.add(tag)
             messages.success(request, "Project was created successfully.")
             return redirect('account')
+
+    context = {"form": form}
     return render(request, 'projects/projectForm.html', context)
 
 @login_required(login_url="login")
@@ -75,12 +85,18 @@ def update_project(request, pk):
     project = profile.project_set.get(id=pk)
     form = ProjectForm(instance=project)
     if request.method == "POST":
+        # String into list split by , and space
+        new_tags = request.POST["new-tags"].replace(",", " ").split()
+        # Creating new tags
+        for tag in new_tags:    
+            tag, created = Tag.objects.get_or_create(name=tag)
+            project.tags.add(tag)
         form = ProjectForm(request.POST, request.FILES, instance=project)
         if form.is_valid:
             form.save()
             messages.success(request, "Project was updated successfully.")
             return redirect('account')
-    context = {'form': form}
+    context = {'form': form, 'project': project}
     return render(request, 'projects/projectForm.html', context)
 
 @login_required(login_url="login")

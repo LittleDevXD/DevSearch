@@ -20,6 +20,14 @@ class Project(models.Model):
         return self.title
 
     @property
+    def imageURL(self):
+        try:
+            url = self.featured_image.url
+        except:
+            url = "/images/default.jpg"
+        return url
+
+    @property
     def reviewers(self):
         query_set = self.review_set.all().values_list('owner__id', flat=True)
         return query_set
